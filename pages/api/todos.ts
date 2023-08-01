@@ -8,6 +8,7 @@ export default function handler(
 ) {
   // eslint-disable-next-line no-console
   console.log(request.method);
+  // comment
 
   if (request.method === "GET") {
     todoController.get(request, response);
