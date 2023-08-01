@@ -1,0 +1,16 @@
+{
+  "todos": [
+    {
+      "id": "6ac03a15-8594-437f-9303-1734ffabc566",
+      "date": "2023-07-30T21:40:37.432Z",
+      "content": "EXTRA TODO",
+      "done": false
+    },
+    {
+      "id": "9c532b8a-4bc0-41a7-bf8f-b3c72badd921",
+      "date": "2023-07-30T21:40:37.433Z",
+      "content": "Atualizada!",
+      "done": false
+    }
+  ]
+}
