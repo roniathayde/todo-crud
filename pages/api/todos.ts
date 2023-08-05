@@ -1,5 +1,4 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { read } from "@db-crud-todo";
 import { todoController } from "@server/controller/todo";
 
 export default function handler(
@@ -8,7 +7,6 @@ export default function handler(
 ) {
   // eslint-disable-next-line no-console
   console.log(request.method);
-  // comment
 
   if (request.method === "GET") {
     todoController.get(request, response);
