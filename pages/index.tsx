@@ -1,7 +1,7 @@
 /* eslint-disable react/react-in-jsx-scope */
 import { todoController } from "@ui/controller/todo";
 import { GlobalStyles } from "@ui/theme/GlobalStyles";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const bg = "https://mariosouto.com/cursos/crudcomqualidade/bg";
 
@@ -11,19 +11,34 @@ interface HomeTodo {
 }
 
 function HomePage() {
+  const initialLoadComplete = useRef(false);
   const [totalPages, setTotalPages] = useState(0);
   const [todos, setTodos] = useState<HomeTodo[]>([]);
   const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
+  const homeTodos = todoController.filterTodosByContent<HomeTodo>(
+    search,
+    todos
+  );
+
+  const [isLoading, setIsLoading] = useState(true);
   const hasMorePages = totalPages > page;
+  const hasNoTodos = homeTodos.length === 0 && !isLoading;
 
   useEffect(() => {
-    todoController.get({ page }).then(({ todos, pages }) => {
-      setTodos((oldTodos) => {
-        return [...oldTodos, ...todos];
-      });
-      setTotalPages(pages);
-    });
-  }, [page]);
+    if (!initialLoadComplete.current) {
+      todoController
+        .get({ page })
+        .then(({ todos, pages }) => {
+          setTodos(todos);
+          setTotalPages(pages);
+        })
+        .finally(() => {
+          setIsLoading(false);
+          initialLoadComplete.current = true;
+        });
+    }
+  }, []);
 
   return (
     <main>
@@ -46,7 +61,14 @@ function HomePage() {
 
       <section>
         <form>
-          <input type="text" placeholder="Filtrar lista atual, ex: Dentista" />
+          <input
+            type="text"
+            placeholder="Filtrar lista atual, ex: Dentista"
+            onChange={function handleSearch(event) {
+              // eslint-disable-next-line no-console
+              setSearch(event.target.value);
+            }}
+          />
         </form>
 
         <table border={1}>
@@ -62,7 +84,7 @@ function HomePage() {
           </thead>
 
           <tbody>
-            {todos.map((todo) => {
+            {homeTodos.map((todo) => {
               return (
                 <tr key={todo.id}>
                   <td>
@@ -77,24 +99,43 @@ function HomePage() {
               );
             })}
 
-            {/* <tr>
-              <td colSpan={4} align="center" style={{ textAlign: "center" }}>
-                Carregando...
-              </td>
-            </tr> */}
+            {isLoading && (
+              <tr>
+                <td colSpan={4} align="center" style={{ textAlign: "center" }}>
+                  Carregando...
+                </td>
+              </tr>
+            )}
 
-            {/* <tr>
-              <td colSpan={4} align="center">
-                Nenhum item encontrado
-              </td>
-            </tr> */}
+            {hasNoTodos && (
+              <tr>
+                <td colSpan={4} align="center">
+                  Nenhum item encontrado
+                </td>
+              </tr>
+            )}
 
             {hasMorePages && (
               <tr>
                 <td colSpan={4} align="center" style={{ textAlign: "center" }}>
                   <button
                     data-type="load-more"
-                    onClick={() => setPage(page + 1)}
+                    onClick={() => {
+                      setIsLoading(true);
+                      const nextPage = page + 1;
+                      setPage(nextPage);
+                      todoController
+                        .get({ page: nextPage })
+                        .then(({ todos, pages }) => {
+                          setTodos((oldTodos) => {
+                            return [...oldTodos, ...todos];
+                          });
+                          setTotalPages(pages);
+                        })
+                        .finally(() => {
+                          setIsLoading(false);
+                        });
+                    }}
                   >
                     Página {page} Carregar mais{" "}
                     <span
